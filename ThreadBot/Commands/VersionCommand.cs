@@ -1,5 +1,4 @@
 ﻿using DiscordDotNetUtilities.Interfaces;
-using ThreadBot.Models;
 
 namespace ThreadBot.Commands
 {
