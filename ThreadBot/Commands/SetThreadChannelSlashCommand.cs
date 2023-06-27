@@ -41,10 +41,15 @@ public class SetThreadChannelSlashCommand : InteractionModuleBase<SocketInteract
             return;
         }
 
+        var placeholderMessage = await channelToSet.SendMessageAsync(
+            embed: _discordFormatter.BuildRegularEmbed("Thread List Placeholder",
+                "Threads will appear here once the process is finished.", new EmbedFooterBuilder { Text = "Placeholder" }));
+
+        var isSuccess = await _threadBotBusinessLayer.SetThreadListMessage(Context.Guild.Id.ToString(), channelToSet.Id.ToString(), placeholderMessage.Id.ToString());
+
         var message = await _threadListUpdateHelper.UpdateThreadListAndGetMessage(Context.Guild);
 
-        var isSuccess = message != null && await _threadBotBusinessLayer.SetThreadListMessage(Context.Guild.Id.ToString(), channelToSet.Id.ToString(), message.Id.ToString());
-        if (isSuccess)
+        if (isSuccess && message != null)
         {
             await FollowupAsync(embed: _discordFormatter.BuildRegularEmbed("Thread Channel Set",
                 $"The list of threads in this server will now appear in {channelToSet.Mention}",
