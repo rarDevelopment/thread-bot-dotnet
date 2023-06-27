@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net7.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\ThreadBot.DataLayer\ThreadBot.DataLayer.csproj" />
+    <ProjectReference Include="..\ThreadBot.Models\ThreadBot.Models.csproj" />
+  </ItemGroup>
+
+</Project>

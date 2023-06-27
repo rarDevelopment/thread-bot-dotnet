@@ -40,6 +40,11 @@
     <PackageReference Include="Microsoft.Extensions.Configuration.EnvironmentVariables" Version="7.0.0" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\ThreadBot.BusinessLayer\ThreadBot.BusinessLayer.csproj" />
+    <ProjectReference Include="..\ThreadBot.Models\ThreadBot.Models.csproj" />
+  </ItemGroup>
+
   <ProjectExtensions><VisualStudio><UserProperties /></VisualStudio></ProjectExtensions>
 
 </Project>

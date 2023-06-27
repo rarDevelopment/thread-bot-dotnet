@@ -10,6 +10,9 @@ using Microsoft.Extensions.Hosting;
 using Serilog;
 using System.Reflection;
 using ThreadBot;
+using ThreadBot.BusinessLayer;
+using ThreadBot.DataLayer;
+using ThreadBot.Models;
 
 var builder = new HostBuilder();
 
@@ -54,6 +57,9 @@ builder.ConfigureServices((host, services) =>
     services.AddSingleton(databaseSettings);
 
     services.AddScoped<IDiscordFormatter, DiscordFormatter>();
+    services.AddScoped<IThreadBotBusinessLayer, ThreadBotBusinessLayer>();
+    services.AddScoped<IThreadBotDataLayer, ThreadBotDataLayer>();
+    services.AddScoped<ThreadListUpdateHelper>();
 
     services.AddSingleton(x => new InteractionService(x.GetRequiredService<DiscordSocketClient>()));
 

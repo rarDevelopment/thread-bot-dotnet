@@ -1,4 +1,4 @@
-﻿namespace ThreadBot;
+﻿namespace ThreadBot.Models;
 
 public class DatabaseSettings
 {
