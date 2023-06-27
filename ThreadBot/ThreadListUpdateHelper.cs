@@ -7,21 +7,31 @@ namespace ThreadBot;
 public class ThreadListUpdateHelper
 {
     private readonly IThreadBotBusinessLayer _threadBotBusinessLayer;
+    private readonly ILogger<DiscordBot> _logger;
     private const string ActiveThreadsTitle = "Active Threads";
     private const string NoActiveThreadsTitle = "No Active Threads";
     private const string FooterText = "Regards, Theodore";
 
-    public ThreadListUpdateHelper(IThreadBotBusinessLayer threadBotBusinessLayer)
+    public ThreadListUpdateHelper(IThreadBotBusinessLayer threadBotBusinessLayer, ILogger<DiscordBot> logger)
     {
         _threadBotBusinessLayer = threadBotBusinessLayer;
+        _logger = logger;
     }
 
-    public async Task<IUserMessage> UpdateThreadListAndGetMessage(SocketGuild guild)
+    public async Task<IUserMessage?> UpdateThreadListAndGetMessage(SocketGuild guild)
     {
-        var threads = GetThreadsToShow(guild.ThreadChannels);
-        var threadEmbed = BuildThreadEmbed(threads);
-        var message = await UpdateThreadList(guild, threadEmbed);
-        return message;
+        try
+        {
+            var threads = GetThreadsToShow(guild.ThreadChannels);
+            var threadEmbed = BuildThreadEmbed(threads);
+            var message = await UpdateThreadList(guild, threadEmbed);
+            return message;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex.Message);
+            return null;
+        }
     }
 
     private static IReadOnlyList<ThreadChannelPartial> GetThreadsToShow(IReadOnlyCollection<SocketThreadChannel> socketThreadChannels)

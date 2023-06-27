@@ -1,19 +1,14 @@
 ﻿using DiscordDotNetUtilities.Interfaces;
-using ThreadBot.BusinessLayer;
 
 namespace ThreadBot.Commands;
 
 public class UpdateThreadListSlashCommand : InteractionModuleBase<SocketInteractionContext>
 {
-    private readonly IThreadBotBusinessLayer _threadBotBusinessLayer;
     private readonly ThreadListUpdateHelper _threadListUpdateHelper;
     private readonly IDiscordFormatter _discordFormatter;
 
-    public UpdateThreadListSlashCommand(IThreadBotBusinessLayer threadBotBusinessLayer,
-        ThreadListUpdateHelper threadListUpdateHelper,
-        IDiscordFormatter discordFormatter)
+    public UpdateThreadListSlashCommand(ThreadListUpdateHelper threadListUpdateHelper, IDiscordFormatter discordFormatter)
     {
-        _threadBotBusinessLayer = threadBotBusinessLayer;
         _threadListUpdateHelper = threadListUpdateHelper;
         _discordFormatter = discordFormatter;
     }
@@ -46,13 +41,13 @@ public class UpdateThreadListSlashCommand : InteractionModuleBase<SocketInteract
         var isSuccess = message != null;
         if (isSuccess)
         {
-            await FollowupAsync(embed: _discordFormatter.BuildRegularEmbed("Thread Channel Set",
-                $"The list of threads in this server will now appear in {channelToSet.Mention}",
+            await FollowupAsync(embed: _discordFormatter.BuildRegularEmbed("Thread List Updated",
+                $"Manual update of the thread list is complete. Your thread list should now be up to date.",
                 Context.User));
         }
         else
         {
-            await FollowupAsync(embed: _discordFormatter.BuildErrorEmbed("Thread Channel Was Not Set",
+            await FollowupAsync(embed: _discordFormatter.BuildErrorEmbed("Thread List Was Not Updated",
                 "The command failed. Please try again later, or there might be an issue with your request.",
                 Context.User));
         }

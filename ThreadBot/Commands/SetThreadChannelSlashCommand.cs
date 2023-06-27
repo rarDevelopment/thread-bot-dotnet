@@ -43,7 +43,7 @@ public class SetThreadChannelSlashCommand : InteractionModuleBase<SocketInteract
 
         var message = await _threadListUpdateHelper.UpdateThreadListAndGetMessage(Context.Guild);
 
-        var isSuccess = await _threadBotBusinessLayer.SetThreadListMessage(Context.Guild.Id.ToString(), channelToSet.Id.ToString(), message.Id.ToString());
+        var isSuccess = message != null && await _threadBotBusinessLayer.SetThreadListMessage(Context.Guild.Id.ToString(), channelToSet.Id.ToString(), message.Id.ToString());
         if (isSuccess)
         {
             await FollowupAsync(embed: _discordFormatter.BuildRegularEmbed("Thread Channel Set",
