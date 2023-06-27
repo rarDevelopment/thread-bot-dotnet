@@ -19,7 +19,8 @@ public class SetThreadChannelSlashCommand : InteractionModuleBase<SocketInteract
     }
 
     [SlashCommand("set-thread-channel", "Set the channel for the thread list to appear in.")]
-    public async Task SetThreadChannel([Summary("channel", "The channel where the thread list will appear")] ISocketMessageChannel? channelToSet = null)
+    public async Task SetThreadChannel(
+        [Summary("channel", "The channel where the thread list will appear")] ISocketMessageChannel? channelToSet = null)
     {
         await DeferAsync();
 
@@ -54,7 +55,7 @@ public class SetThreadChannelSlashCommand : InteractionModuleBase<SocketInteract
         if (isSuccess && message != null)
         {
             await FollowupAsync(embed: _discordFormatter.BuildRegularEmbed("Thread Channel Set",
-                $"The list of threads in this server will now appear in {channelToSet.Mention}",
+                $"The list of threads in this server will now appear in {(channelToSet as SocketTextChannel)!.Mention}",
                 Context.User));
         }
         else
