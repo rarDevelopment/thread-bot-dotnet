@@ -1,12 +1,11 @@
-﻿namespace ThreadBot
-{
-    public class VersionSettings
-    {
-        public VersionSettings(string versionNumber)
-        {
-            VersionNumber = versionNumber;
-        }
+﻿namespace ThreadBot;
 
-        public string VersionNumber { get; set; }
+public class VersionSettings
+{
+    public VersionSettings(string versionNumber)
+    {
+        VersionNumber = versionNumber;
     }
+
+    public string VersionNumber { get; set; }
 }
