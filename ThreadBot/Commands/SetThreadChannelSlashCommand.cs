@@ -27,7 +27,7 @@ public class SetThreadChannelSlashCommand : InteractionModuleBase<SocketInteract
         if (Context.User is not IGuildUser requestingUser)
         {
             await FollowupAsync(embed:
-                _discordFormatter.BuildErrorEmbed("Invalid Action",
+                _discordFormatter.BuildErrorEmbedWithUserFooter("Invalid Action",
                     "Sorry, you need to be a valid user in a valid server to use this bot.",
                     Context.User));
             return;
@@ -36,7 +36,7 @@ public class SetThreadChannelSlashCommand : InteractionModuleBase<SocketInteract
         if (!requestingUser.GuildPermissions.ManageThreads)
         {
             await FollowupAsync(embed:
-                _discordFormatter.BuildErrorEmbed("Insufficient Permissions",
+                _discordFormatter.BuildErrorEmbedWithUserFooter("Insufficient Permissions",
                     "Sorry, you do not have permission to set the thread list channel.",
                     Context.User));
             return;
@@ -54,13 +54,13 @@ public class SetThreadChannelSlashCommand : InteractionModuleBase<SocketInteract
 
         if (isSuccess && message != null)
         {
-            await FollowupAsync(embed: _discordFormatter.BuildRegularEmbed("Thread Channel Set",
+            await FollowupAsync(embed: _discordFormatter.BuildRegularEmbedWithUserFooter("Thread Channel Set",
                 $"The list of threads in this server will now appear in {(channelToSet as SocketTextChannel)!.Mention}",
                 Context.User));
         }
         else
         {
-            await FollowupAsync(embed: _discordFormatter.BuildErrorEmbed("Thread Channel Was Not Set",
+            await FollowupAsync(embed: _discordFormatter.BuildErrorEmbedWithUserFooter("Thread Channel Was Not Set",
                 "The command failed. Please try again later, or there might be an issue with your request.",
                 Context.User));
         }
