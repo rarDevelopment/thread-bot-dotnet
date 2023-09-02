@@ -16,7 +16,7 @@ public class VersionCommand : InteractionModuleBase<SocketInteractionContext>
     [SlashCommand("version", "Get the current version number of the bot.")]
     public async Task VersionSlashCommand()
     {
-        await RespondAsync(embed: _discordFormatter.BuildRegularEmbed("Bot Version",
+        await RespondAsync(embed: _discordFormatter.BuildRegularEmbedWithUserFooter("Bot Version",
             $"ThreadBot is at version **{_versionSettings.VersionNumber}**",
             Context.User));
     }
