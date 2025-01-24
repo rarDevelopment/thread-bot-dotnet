@@ -2,8 +2,6 @@
 
 A Discord Bot for maintaining a list of open threads in your server in a dedicated channel.
 
-Now written in C# and .NET 7.
-
 [Invite ThreadBot to your Discord Server](https://discord.com/api/oauth2/authorize?client_id=950921256314740766&permissions=534723914832&scope=bot%20applications.commands)
 
 [Discord Support Server](https://discord.gg/Za4NAtJJ9v)
