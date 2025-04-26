@@ -1,6 +1,4 @@
-﻿using System.Runtime.InteropServices.Marshalling;
-using Discord;
-using ThreadBot.BusinessLayer;
+﻿using ThreadBot.BusinessLayer;
 using ThreadBot.Models;
 using ThreadBot.Models.Exceptions;
 
