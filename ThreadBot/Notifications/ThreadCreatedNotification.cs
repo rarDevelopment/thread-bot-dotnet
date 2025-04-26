@@ -2,12 +2,7 @@
 
 namespace ThreadBot.Notifications;
 
-public class ThreadCreatedNotification : INotification
+public class ThreadCreatedNotification(SocketThreadChannel channel) : INotification
 {
-    public SocketThreadChannel Channel { get; }
-
-    public ThreadCreatedNotification(SocketThreadChannel channel)
-    {
-        Channel = channel ?? throw new ArgumentNullException(nameof(channel));
-    }
+    public SocketThreadChannel Channel { get; } = channel ?? throw new ArgumentNullException(nameof(channel));
 }

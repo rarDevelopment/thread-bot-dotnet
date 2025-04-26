@@ -2,14 +2,9 @@
 
 namespace ThreadBot.Notifications;
 
-public class ThreadUpdatedNotification : INotification
+public class ThreadUpdatedNotification(Cacheable<SocketThreadChannel, ulong> oldThread, SocketThreadChannel newThread)
+    : INotification
 {
-    public Cacheable<SocketThreadChannel, ulong> OldThread { get; }
-    public SocketThreadChannel NewThread { get; }
-
-    public ThreadUpdatedNotification(Cacheable<SocketThreadChannel, ulong> oldThread, SocketThreadChannel newThread)
-    {
-        OldThread = oldThread;
-        NewThread = newThread;
-    }
+    public Cacheable<SocketThreadChannel, ulong> OldThread { get; } = oldThread;
+    public SocketThreadChannel NewThread { get; } = newThread;
 }

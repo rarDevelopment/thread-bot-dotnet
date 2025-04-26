@@ -1,8 +1,4 @@
 ﻿namespace ThreadBot.Models.Exceptions;
 
-public class NoGuildChannelSetException : Exception
-{
-    public NoGuildChannelSetException(string guildId) :
-        base($"No thread channel is set up for guild with id {guildId}")
-    { }
-}
+public class NoGuildChannelSetException(string guildId)
+    : Exception($"No thread channel is set up for guild with id {guildId}");

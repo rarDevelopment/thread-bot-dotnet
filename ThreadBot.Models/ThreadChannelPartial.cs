@@ -1,17 +1,9 @@
 ﻿namespace ThreadBot.Models;
 
-public class ThreadChannelPartial
+public class ThreadChannelPartial(string threadName, string threadMention, string channelName, string channelMention)
 {
-    public string ThreadName { get; }
-    public string ThreadMention { get; }
-    public string ChannelName { get; }
-    public string ChannelMention { get; }
-
-    public ThreadChannelPartial(string threadName, string threadMention, string channelName, string channelMention)
-    {
-        ThreadName = threadName;
-        ThreadMention = threadMention;
-        ChannelName = channelName;
-        ChannelMention = channelMention;
-    }
+    public string ThreadName { get; } = threadName;
+    public string ThreadMention { get; } = threadMention;
+    public string ChannelName { get; } = channelName;
+    public string ChannelMention { get; } = channelMention;
 }

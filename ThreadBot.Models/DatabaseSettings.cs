@@ -1,17 +1,9 @@
 ﻿namespace ThreadBot.Models;
 
-public class DatabaseSettings
+public class DatabaseSettings(string cluster, string user, string password, string name)
 {
-    public DatabaseSettings(string cluster, string user, string password, string name)
-    {
-        Cluster = cluster;
-        User = user;
-        Password = password;
-        Name = name;
-    }
-
-    public string Cluster { get; set; }
-    public string User { get; set; }
-    public string Password { get; set; }
-    public string Name { get; set; }
+    public string Cluster { get; set; } = cluster;
+    public string User { get; set; } = user;
+    public string Password { get; set; } = password;
+    public string Name { get; set; } = name;
 }
