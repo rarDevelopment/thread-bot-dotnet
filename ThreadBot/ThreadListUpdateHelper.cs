@@ -53,7 +53,6 @@ public class ThreadListUpdateHelper(IThreadBotBusinessLayer threadBotBusinessLay
 
     private static EmbedBuilder BuildThreadEmbed(Dictionary<string, List<ThreadChannelPartial>> threadsByChannel, int pageIndex)
     {
-        // Paginate channel groups
         var paginatedChannelGroups = threadsByChannel
             .Skip(pageIndex * MaxChannelGroupsPerPage)
             .Take(MaxChannelGroupsPerPage)
@@ -115,11 +114,11 @@ public class ThreadListUpdateHelper(IThreadBotBusinessLayer threadBotBusinessLay
         var buttonBuilder = new ComponentBuilder();
         if (newPageIndex >= 1)
         {
-            buttonBuilder.WithButton("Previous", $"currentIndexPrev:{newPageIndex - 1}", emote: new Emoji("⬅️"));
+            buttonBuilder.WithButton("Previous", $"currentIndexPrev_{newPageIndex - 1}", emote: new Emoji("⬅️"));
         }
         if (newPageIndex < totalPages && totalPages > 1)
         {
-            buttonBuilder.WithButton("Next", $"currentIndexNext:{newPageIndex + 1}", emote: new Emoji("➡️"));
+            buttonBuilder.WithButton("Next", $"currentIndexNext_{newPageIndex + 1}", emote: new Emoji("➡️"));
         }
 
         var message = threadListMessage.ListMessageId != null
