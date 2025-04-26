@@ -46,7 +46,7 @@ public class ThreadListUpdateHelper(IThreadBotBusinessLayer threadBotBusinessLay
             .GroupBy(t => t.ChannelName)
             .ToDictionary(g => g.Key, g => g.ToList());
 
-        var totalPages = (int)Math.Ceiling((double)threadsByChannel.Count / MaxChannelGroupsPerPage);
+        var totalPages = Math.Max(1, (int)Math.Ceiling((double)threadsByChannel.Count / MaxChannelGroupsPerPage));
 
         return (threadsByChannel, totalPages);
     }
