@@ -1,11 +1,6 @@
 ﻿namespace ThreadBot;
 
-public class DiscordSettings
+public class DiscordSettings(string botToken)
 {
-    public DiscordSettings(string botToken)
-    {
-        BotToken = botToken;
-    }
-
-    public string BotToken { get; set; }
+    public string BotToken { get; set; } = botToken;
 }

@@ -5,69 +5,55 @@ using ThreadBot.Notifications;
 
 namespace ThreadBot;
 
-public class DiscordBot : BackgroundService
+public class DiscordBot(
+    DiscordSocketClient client,
+    InteractionService interactions,
+    IServiceScopeFactory serviceScopeFactory,
+    ILogger<DiscordBot> logger,
+    InteractionHandler interactionHandler,
+    DiscordSettings discordSettings)
+    : BackgroundService
 {
-    private readonly DiscordSocketClient _client;
-    private readonly InteractionService _interactions;
-    private readonly IServiceScopeFactory _serviceScopeFactory;
-    private readonly ILogger _logger;
-    private readonly InteractionHandler _interactionHandler;
-    private readonly DiscordSettings _discordSettings;
-    private readonly CancellationToken _cancellationToken;
-
-    public DiscordBot(DiscordSocketClient client,
-        InteractionService interactions,
-        IServiceScopeFactory serviceScopeFactory,
-        ILogger<DiscordBot> logger,
-        InteractionHandler interactionHandler,
-        DiscordSettings discordSettings)
-    {
-        _client = client;
-        _interactions = interactions;
-        _serviceScopeFactory = serviceScopeFactory;
-        _logger = logger;
-        _interactionHandler = interactionHandler;
-        _discordSettings = discordSettings;
-        _cancellationToken = new CancellationTokenSource().Token;
-    }
+    private readonly ILogger _logger = logger;
+    private readonly CancellationToken _cancellationToken = new CancellationTokenSource().Token;
 
     private IMediator Mediator
     {
         get
         {
-            var scope = _serviceScopeFactory.CreateScope();
+            var scope = serviceScopeFactory.CreateScope();
             return scope.ServiceProvider.GetRequiredService<IMediator>();
         }
     }
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        _client.Ready += ClientReady;
+        client.Ready += ClientReady;
 
-        _client.Log += LogAsync;
-        _interactions.Log += LogAsync;
+        client.Log += LogAsync;
+        interactions.Log += LogAsync;
 
-        await _interactionHandler.InitializeAsync();
+        await interactionHandler.InitializeAsync();
 
         SetEvents();
 
-        await _client.LoginAsync(TokenType.Bot, _discordSettings.BotToken);
+        await client.LoginAsync(TokenType.Bot, discordSettings.BotToken);
 
-        await _client.StartAsync();
+        await client.StartAsync();
     }
 
     private async Task ClientReady()
     {
-        _logger.LogInformation($"Logged as {_client.CurrentUser}");
+        _logger.LogInformation($"Logged as {client.CurrentUser}");
 
-        await _interactions.RegisterCommandsGloballyAsync();
+        await interactions.RegisterCommandsGloballyAsync();
     }
 
     private void SetEvents()
     {
-        _client.ThreadCreated += channel => Publish(new ThreadCreatedNotification(channel));
-        _client.ThreadUpdated += (oldThread, newThread) => Publish(new ThreadUpdatedNotification(oldThread, newThread));
-        _client.ThreadDeleted += deletedThread => Publish(new ThreadDeletedNotification(deletedThread));
+        client.ThreadCreated += channel => Publish(new ThreadCreatedNotification(channel));
+        client.ThreadUpdated += (oldThread, newThread) => Publish(new ThreadUpdatedNotification(oldThread, newThread));
+        client.ThreadDeleted += deletedThread => Publish(new ThreadDeletedNotification(deletedThread));
     }
 
     private Task Publish<TEvent>(TEvent @event) where TEvent : INotification

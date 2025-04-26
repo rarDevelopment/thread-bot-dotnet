@@ -1,15 +1,8 @@
 ﻿namespace ThreadBot.Models;
 
-public class ThreadListMessage
+public class ThreadListMessage(string guildId, string channelId, string? listMessageId)
 {
-    public ThreadListMessage(string guildId, string channelId, string? listMessageId)
-    {
-        GuildId = guildId;
-        ChannelId = channelId;
-        ListMessageId = listMessageId;
-    }
-
-    public string GuildId { get; set; }
-    public string ChannelId { get; set; }
-    public string? ListMessageId { get; set; }
+    public string GuildId { get; set; } = guildId;
+    public string ChannelId { get; set; } = channelId;
+    public string? ListMessageId { get; set; } = listMessageId;
 }

@@ -2,12 +2,7 @@
 
 namespace ThreadBot.Notifications;
 
-public class ThreadDeletedNotification : INotification
+public class ThreadDeletedNotification(Cacheable<SocketThreadChannel, ulong> deletedThread) : INotification
 {
-    public ThreadDeletedNotification(Cacheable<SocketThreadChannel, ulong> deletedThread)
-    {
-        DeletedThread = deletedThread;
-    }
-
-    public Cacheable<SocketThreadChannel, ulong> DeletedThread { get; set; }
+    public Cacheable<SocketThreadChannel, ulong> DeletedThread { get; set; } = deletedThread;
 }

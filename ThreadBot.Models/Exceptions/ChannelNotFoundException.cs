@@ -1,6 +1,3 @@
 ﻿namespace ThreadBot.Models.Exceptions;
 
-public class ChannelNotFoundException : Exception
-{
-    public ChannelNotFoundException(string channelId) : base($"No channel found with id {channelId}") { }
-}
+public class ChannelNotFoundException(string channelId) : Exception($"No channel found with id {channelId}");
