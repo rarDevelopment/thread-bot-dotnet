@@ -1,10 +1,13 @@
-﻿using ThreadBot.BusinessLayer;
+﻿using DiscordDotNetUtilities.Interfaces;
+using ThreadBot.BusinessLayer;
 using ThreadBot.Models;
 using ThreadBot.Models.Exceptions;
 
 namespace ThreadBot;
 
-public class ThreadListUpdateHelper(IThreadBotBusinessLayer threadBotBusinessLayer, ILogger<DiscordBot> logger)
+public class ThreadListUpdateHelper(IThreadBotBusinessLayer threadBotBusinessLayer,
+    IDiscordFormatter discordFormatter,
+    ILogger<DiscordBot> logger)
 {
     private const string ActiveThreadsTitle = "Active Threads";
     private const string NoActiveThreadsTitle = "No Active Threads";
@@ -52,6 +55,7 @@ public class ThreadListUpdateHelper(IThreadBotBusinessLayer threadBotBusinessLay
     private static EmbedBuilder BuildThreadEmbed(Dictionary<string, List<ThreadChannelPartial>> threadsByChannel, int pageIndex)
     {
         var paginatedChannelGroups = threadsByChannel
+            .OrderBy(c => c.Key)
             .Skip(pageIndex * MaxChannelGroupsPerPage)
             .Take(MaxChannelGroupsPerPage)
             .ToList();
@@ -93,6 +97,7 @@ public class ThreadListUpdateHelper(IThreadBotBusinessLayer threadBotBusinessLay
     {
         var guildId = guild.Id.ToString();
         var threadListMessage = await threadBotBusinessLayer.GetThreadListMessage(guildId);
+
         if (threadListMessage == null)
         {
             throw new NoGuildChannelSetException(guildId);
@@ -112,23 +117,41 @@ public class ThreadListUpdateHelper(IThreadBotBusinessLayer threadBotBusinessLay
         var buttonBuilder = new ComponentBuilder();
         if (newPageIndex >= 1)
         {
-            buttonBuilder.WithButton("Previous", $"currentIndexPrev_{newPageIndex - 1}", emote: new Emoji("⬅️"));
+            buttonBuilder.WithButton("Previous", $"currentIndexPrev_{newPageIndex}", emote: new Emoji("⬅️"));
         }
-        if (newPageIndex < totalPages && totalPages > 1)
+        if (newPageIndex < (totalPages - 1) && totalPages > 1)
         {
-            buttonBuilder.WithButton("Next", $"currentIndexNext_{newPageIndex + 1}", emote: new Emoji("➡️"));
+            buttonBuilder.WithButton("Next", $"currentIndexNext_{newPageIndex}", emote: new Emoji("➡️"));
         }
 
         var message = threadListMessage.ListMessageId != null
             ? await textChannel.GetMessageAsync(Convert.ToUInt64(threadListMessage.ListMessageId))
             : null;
 
-        if (message == null)
+        var listMessageId = threadListMessage.ListMessageId;
+
+        if (message != null)
         {
-            return await textChannel.SendMessageAsync(embed: threadEmbed.Build(), components: buttonBuilder.Build());
+            return await textChannel.ModifyMessageAsync(Convert.ToUInt64(listMessageId), properties =>
+            {
+                properties.Embed = threadEmbed.Build();
+                properties.Components = buttonBuilder.Build();
+            });
         }
 
-        return await textChannel.ModifyMessageAsync(Convert.ToUInt64(threadListMessage.ListMessageId), properties =>
+        var placeholderMessage = await textChannel.SendMessageAsync(
+            embed: discordFormatter.BuildRegularEmbed("Thread List Placeholder",
+                "Threads will appear here once the process is finished.",
+                new EmbedFooterBuilder { Text = "Placeholder" }));
+
+        var isSuccess = await threadBotBusinessLayer.SetThreadListMessage(guild.Id.ToString(),
+            textChannel.Id.ToString(), placeholderMessage.Id.ToString());
+        if (isSuccess)
+        {
+            listMessageId = placeholderMessage.Id.ToString();
+        }
+
+        return await textChannel.ModifyMessageAsync(Convert.ToUInt64(listMessageId), properties =>
         {
             properties.Embed = threadEmbed.Build();
             properties.Components = buttonBuilder.Build();
