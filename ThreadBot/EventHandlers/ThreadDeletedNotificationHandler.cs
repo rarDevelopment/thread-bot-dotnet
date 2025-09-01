@@ -1,12 +1,12 @@
-﻿using MediatR;
+﻿using DiscordDotNetUtilities.Interfaces;
 using ThreadBot.Notifications;
 
 namespace ThreadBot.EventHandlers;
 
 public class ThreadDeletedNotificationHandler(ThreadListUpdateHelper threadListUpdateHelper)
-    : INotificationHandler<ThreadDeletedNotification>
+    : IEventHandler<ThreadDeletedNotification>
 {
-    public Task Handle(ThreadDeletedNotification notification, CancellationToken cancellationToken)
+    public Task HandleAsync(ThreadDeletedNotification notification, CancellationToken cancellationToken)
     {
         _ = Task.Run(async () =>
         {

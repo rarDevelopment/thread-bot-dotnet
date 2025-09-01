@@ -1,12 +1,12 @@
-﻿using MediatR;
+﻿using DiscordDotNetUtilities.Interfaces;
 using ThreadBot.Notifications;
 
 namespace ThreadBot.EventHandlers;
 
 public class ThreadCreatedNotificationHandler(ThreadListUpdateHelper threadListUpdateHelper)
-    : INotificationHandler<ThreadCreatedNotification>
+    : IEventHandler<ThreadCreatedNotification>
 {
-    public Task Handle(ThreadCreatedNotification notification, CancellationToken cancellationToken)
+    public Task HandleAsync(ThreadCreatedNotification notification, CancellationToken cancellationToken)
     {
         _ = Task.Run(async () =>
         {

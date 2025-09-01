@@ -12,7 +12,9 @@ using System.Reflection;
 using ThreadBot;
 using ThreadBot.BusinessLayer;
 using ThreadBot.DataLayer;
+using ThreadBot.EventHandlers;
 using ThreadBot.Models;
+using ThreadBot.Notifications;
 
 var builder = new HostBuilder();
 
@@ -65,7 +67,12 @@ builder.ConfigureServices((host, services) =>
 
     services.AddSingleton<InteractionHandler>();
 
-    services.AddMediatR(cfg => cfg.RegisterServicesFromAssemblies(typeof(DiscordBot).GetTypeInfo().Assembly));
+    services.AddScoped<IEventBus, EventBus>();
+
+    // Register Event Handlers
+    services.AddScoped<IEventHandler<ThreadCreatedNotification>, ThreadCreatedNotificationHandler>();
+    services.AddScoped<IEventHandler<ThreadDeletedNotification>, ThreadDeletedNotificationHandler>();
+    services.AddScoped<IEventHandler<ThreadUpdatedNotification>, ThreadUpdatedNotificationHandler>();
 
     services.AddHostedService<DiscordBot>();
 });
