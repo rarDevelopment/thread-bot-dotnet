@@ -1,6 +1,4 @@
-﻿using System.Text.Json;
-
-namespace ThreadBot;
+﻿namespace ThreadBot;
 
 public static class DiscordExtensions
 {
@@ -10,30 +8,15 @@ public static class DiscordExtensions
         {
             return false;
         }
-        
+
         if (guildChannel.Guild is not SocketGuild guild)
         {
             return false;
         }
 
         var user = guild.Users.FirstOrDefault(u => u.Id == userId);
-        if (user == null)
-        {
-            return false;
-        }
 
-        var permissions = user.GetPermissions(guildChannel);
-        
-        var permissionsJson = JsonSerializer.Serialize(new
-        {
-            ChannelId = guildChannel.Id,
-            UserId = userId,
-            permissions.ViewChannel,
-            permissions.SendMessages,
-            Result = permissions is { ViewChannel: true, SendMessages: true }
-        }, new JsonSerializerOptions { WriteIndented = true });
-        
-        Console.WriteLine($"[Permission Check] {permissionsJson}");
+        var permissions = user?.GetPermissions(guildChannel);
 
         return permissions is { ViewChannel: true, SendMessages: true };
     }
