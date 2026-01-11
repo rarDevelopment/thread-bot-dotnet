@@ -6,7 +6,8 @@ namespace ThreadBot.Commands;
 public class SetThreadChannelSlashCommand(
     IThreadBotBusinessLayer threadBotBusinessLayer,
     ThreadListUpdateHelper threadListUpdateHelper,
-    IDiscordFormatter discordFormatter) : InteractionModuleBase<SocketInteractionContext>
+    IDiscordFormatter discordFormatter,
+    ILogger<DiscordBot> logger) : InteractionModuleBase<SocketInteractionContext>
 {
     [SlashCommand("set-thread-channel", "Set the channel for the thread list to appear in.")]
     public async Task SetThreadChannel(
@@ -35,24 +36,56 @@ public class SetThreadChannelSlashCommand(
 
         channelToSet ??= Context.Channel;
 
-        var placeholderMessage = await channelToSet.SendMessageAsync(
-            embed: discordFormatter.BuildRegularEmbed("Thread List Placeholder",
-                "Threads will appear here once the process is finished.",
-                new EmbedFooterBuilder { Text = "Placeholder" }));
-
-        var isSuccess = await threadBotBusinessLayer.SetThreadListMessage(Context.Guild.Id.ToString(),
-            channelToSet.Id.ToString(), placeholderMessage.Id.ToString());
-
-        var message = await threadListUpdateHelper.UpdateThreadListAndGetMessage(Context.Guild);
-
-        if (isSuccess && message != null)
+        try
         {
-            await FollowupAsync(embed: discordFormatter.BuildRegularEmbedWithUserFooter("Thread Channel Set",
-                $"The list of threads in this server will now appear in {(channelToSet as SocketTextChannel)!.Mention}",
-                Context.User));
+            var botHasPermission = channelToSet.HasPermissionToSendMessagesInChannel(Context.Client.CurrentUser.Id);
+            logger.LogInformation($"Bot permission check for channel {channelToSet.Id}: {botHasPermission}");
+            
+            if (!botHasPermission)
+            {
+                await FollowupAsync(embed: discordFormatter.BuildErrorEmbedWithUserFooter("Insufficient Permissions",
+                    "Sorry, I do not have permission to send messages in that channel.",
+                    Context.User));
+                return;
+            }
+
+            var userHasPermission = channelToSet.HasPermissionToSendMessagesInChannel(Context.User.Id);
+            logger.LogInformation($"User permission check for channel {channelToSet.Id}: {userHasPermission}");
+            
+            if (!userHasPermission)
+            {
+                await FollowupAsync(embed: discordFormatter.BuildErrorEmbedWithUserFooter("Insufficient Permissions",
+                    "Sorry, you do not have permission to send messages in that channel.",
+                    Context.User));
+                return;
+            }
+
+            var placeholderMessage = await channelToSet.SendMessageAsync(
+                embed: discordFormatter.BuildRegularEmbed("Thread List Placeholder",
+                    "Threads will appear here once the process is finished.",
+                    new EmbedFooterBuilder { Text = "Placeholder" }));
+
+            var isSuccess = await threadBotBusinessLayer.SetThreadListMessage(Context.Guild.Id.ToString(),
+                channelToSet.Id.ToString(), placeholderMessage.Id.ToString());
+
+            var message = await threadListUpdateHelper.UpdateThreadListAndGetMessage(Context.Guild);
+
+            if (isSuccess && message != null)
+            {
+                await FollowupAsync(embed: discordFormatter.BuildRegularEmbedWithUserFooter("Thread Channel Set",
+                    $"The list of threads in this server will now appear in {(channelToSet as SocketTextChannel)!.Mention}",
+                    Context.User));
+            }
+            else
+            {
+                await FollowupAsync(embed: discordFormatter.BuildErrorEmbedWithUserFooter("Thread Channel Was Not Set",
+                    "The command failed. Please try again later, or there might be an issue with your request.",
+                    Context.User));
+            }
         }
-        else
+        catch (Exception ex)
         {
+            logger.LogError(ex, $"ThreadBot Error: {ex.Message}");
             await FollowupAsync(embed: discordFormatter.BuildErrorEmbedWithUserFooter("Thread Channel Was Not Set",
                 "The command failed. Please try again later, or there might be an issue with your request.",
                 Context.User));
