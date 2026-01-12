@@ -14,9 +14,20 @@ ThreadBot must be set up using the `/set-thread-channel` command (see below). On
 
 Once ThreadBot is set up, the thread list will be automatically updated every time a thread is created, locked, or deleted. See the `/update-threads` command below in case a manual update is ever needed.
 
+## Required Permissions
+
+For the bot to function properly in the thread list channel, it needs the following permissions:
+
+- **View Channel** - To see the channel
+- **Send Messages** - To post and update the thread list
+- **Embed Links** - To format the thread list with embeds
+- **Read Message History** - To retrieve existing thread list messages for updates
+
+**Note:** If any of these permissions are missing, the bot will provide a detailed error message indicating which permissions need to be granted.
+
 ## Commands
 
-**NOTE:** All commmands require the `Manage Threads` permission in order to use them.
+**NOTE:** All commmands require that the user have the `Manage Threads` permission in order to use them.
 
 ---
 

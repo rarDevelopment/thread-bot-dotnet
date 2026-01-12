@@ -1,7 +1,9 @@
 ﻿using DiscordDotNetUtilities.Interfaces;
+using JetBrains.Annotations;
 
 namespace ThreadBot.Commands;
 
+[UsedImplicitly]
 public class UpdateThreadListSlashCommand(ThreadListUpdateHelper threadListUpdateHelper, IDiscordFormatter discordFormatter)
     : InteractionModuleBase<SocketInteractionContext>
 {
