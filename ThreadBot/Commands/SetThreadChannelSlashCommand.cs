@@ -38,24 +38,24 @@ public class SetThreadChannelSlashCommand(
 
         try
         {
-            var botHasPermission = channelToSet.HasPermissionToSendMessagesInChannel(Context.Client.CurrentUser.Id);
+            var botHasPermission = channelToSet.HasPermissionToSendMessagesInChannel(Context.Client.CurrentUser.Id, out var botMissingPermissions);
             logger.LogInformation($"Bot permission check for channel {channelToSet.Id}: {botHasPermission}");
             
             if (!botHasPermission)
             {
                 await FollowupAsync(embed: discordFormatter.BuildErrorEmbedWithUserFooter("Insufficient Permissions",
-                    "Sorry, I do not have permission to send messages in that channel.",
+                    $"Sorry, I do not have permission to send messages in that channel.\n\n**Missing Permissions:** {botMissingPermissions}",
                     Context.User));
                 return;
             }
 
-            var userHasPermission = channelToSet.HasPermissionToSendMessagesInChannel(Context.User.Id);
+            var userHasPermission = channelToSet.HasPermissionToSendMessagesInChannel(Context.User.Id, out var userMissingPermissions);
             logger.LogInformation($"User permission check for channel {channelToSet.Id}: {userHasPermission}");
             
             if (!userHasPermission)
             {
                 await FollowupAsync(embed: discordFormatter.BuildErrorEmbedWithUserFooter("Insufficient Permissions",
-                    "Sorry, you do not have permission to send messages in that channel.",
+                    $"Sorry, you do not have permission to send messages in that channel.\n\n**Missing Permissions:**\n{userMissingPermissions}",
                     Context.User));
                 return;
             }
