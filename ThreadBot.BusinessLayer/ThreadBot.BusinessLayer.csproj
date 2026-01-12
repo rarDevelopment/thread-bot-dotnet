@@ -7,6 +7,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="JetBrains.Annotations" Version="2025.2.4" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\ThreadBot.DataLayer\ThreadBot.DataLayer.csproj" />
     <ProjectReference Include="..\ThreadBot.Models\ThreadBot.Models.csproj" />
   </ItemGroup>

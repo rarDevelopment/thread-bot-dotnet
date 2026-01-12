@@ -1,8 +1,10 @@
 ﻿using DiscordDotNetUtilities.Interfaces;
+using JetBrains.Annotations;
 using ThreadBot.BusinessLayer;
 
 namespace ThreadBot.Commands;
 
+[UsedImplicitly]
 public class SetThreadChannelSlashCommand(
     IThreadBotBusinessLayer threadBotBusinessLayer,
     ThreadListUpdateHelper threadListUpdateHelper,
@@ -40,7 +42,7 @@ public class SetThreadChannelSlashCommand(
         {
             var botHasPermission = channelToSet.HasPermissionToSendMessagesInChannel(Context.Client.CurrentUser.Id, out var botMissingPermissions);
             logger.LogInformation($"Bot permission check for channel {channelToSet.Id}: {botHasPermission}");
-            
+
             if (!botHasPermission)
             {
                 await FollowupAsync(embed: discordFormatter.BuildErrorEmbedWithUserFooter("Insufficient Permissions",
@@ -51,7 +53,7 @@ public class SetThreadChannelSlashCommand(
 
             var userHasPermission = channelToSet.HasPermissionToSendMessagesInChannel(Context.User.Id, out var userMissingPermissions);
             logger.LogInformation($"User permission check for channel {channelToSet.Id}: {userHasPermission}");
-            
+
             if (!userHasPermission)
             {
                 await FollowupAsync(embed: discordFormatter.BuildErrorEmbedWithUserFooter("Insufficient Permissions",
@@ -93,6 +95,7 @@ public class SetThreadChannelSlashCommand(
     }
 
     [ComponentInteraction("currentIndexNext_*")]
+    [UsedImplicitly]
     public async Task NextButton(int currentIndex)
     {
         await DeferAsync();
@@ -107,6 +110,7 @@ public class SetThreadChannelSlashCommand(
         await FollowupAsync();
     }
     [ComponentInteraction("currentIndexPrev_*")]
+    [UsedImplicitly]
     public async Task PreviousButton(int currentIndex)
     {
         await DeferAsync();
