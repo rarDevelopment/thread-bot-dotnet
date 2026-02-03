@@ -34,6 +34,26 @@ public class ThreadListUpdateHelper(IThreadBotBusinessLayer threadBotBusinessLay
         }
     }
 
+    public (EmbedBuilder threadEmbed, ComponentBuilder buttonBuilder)? GetThreadListForChannel(SocketGuild guild, ISocketMessageChannel channel, int newPageIndex = 0)
+    {
+        try
+        {
+            var threadsInSpecifiedChannel = guild.ThreadChannels.Where(t => t.ParentChannel.Id == channel.Id).ToList();
+
+            var threadsByChannelAndTotalPages = GetThreadsByChannelPaginated(threadsInSpecifiedChannel);
+
+            // Build the embed for the current page
+            var threadEmbedBuilder = BuildThreadEmbed(threadsByChannelAndTotalPages.threadsByChannel, newPageIndex);
+            var threadListMessage = BuildThreadListMessage(threadEmbedBuilder, newPageIndex, threadsByChannelAndTotalPages.totalPages);
+            return threadListMessage;
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex.Message);
+            return null;
+        }
+    }
+
     public (Dictionary<string, List<ThreadChannelPartial>> threadsByChannel, int totalPages)
         GetThreadsByChannelPaginated(IReadOnlyCollection<SocketThreadChannel> threadChannels)
     {
@@ -93,6 +113,13 @@ public class ThreadListUpdateHelper(IThreadBotBusinessLayer threadBotBusinessLay
         return embed;
     }
 
+    private async Task<ThreadListMessage?> GetThreadList(SocketGuild guild, EmbedBuilder threadEmbed, int newPageIndex, int totalPages)
+    {
+        var guildId = guild.Id.ToString();
+        var threadListMessage = await threadBotBusinessLayer.GetThreadListMessage(guildId);
+        return threadListMessage;
+    }
+
     private async Task<IUserMessage> UpdateThreadList(SocketGuild guild, EmbedBuilder threadEmbed, int newPageIndex, int totalPages)
     {
         var guildId = guild.Id.ToString();
@@ -103,6 +130,27 @@ public class ThreadListUpdateHelper(IThreadBotBusinessLayer threadBotBusinessLay
             throw new NoGuildChannelSetException(guildId);
         }
 
+        return await UpdateThreadListForMessage(guild, threadEmbed, newPageIndex, totalPages, threadListMessage);
+    }
+
+    private (EmbedBuilder threadEmbed, ComponentBuilder buttonBuilder) BuildThreadListMessage(EmbedBuilder threadEmbed, int newPageIndex, int totalPages)
+    {
+        var buttonBuilder = new ComponentBuilder();
+        if (newPageIndex >= 1)
+        {
+            buttonBuilder.WithButton("Previous", $"currentIndexPrev_{newPageIndex}", emote: new Emoji("⬅️"));
+        }
+        if (newPageIndex < (totalPages - 1) && totalPages > 1)
+        {
+            buttonBuilder.WithButton("Next", $"currentIndexNext_{newPageIndex}", emote: new Emoji("➡️"));
+        }
+
+        return (threadEmbed, buttonBuilder);
+    }
+
+    private async Task<IUserMessage> UpdateThreadListForMessage(SocketGuild guild, EmbedBuilder threadEmbed, int newPageIndex,
+        int totalPages, ThreadListMessage threadListMessage)
+    {
         var threadListChannel = guild.GetChannel(Convert.ToUInt64(threadListMessage.ChannelId));
         if (threadListChannel == null)
         {
@@ -114,15 +162,7 @@ public class ThreadListUpdateHelper(IThreadBotBusinessLayer threadBotBusinessLay
             throw new InvalidChannelTypeException(threadListChannel.Id.ToString());
         }
 
-        var buttonBuilder = new ComponentBuilder();
-        if (newPageIndex >= 1)
-        {
-            buttonBuilder.WithButton("Previous", $"currentIndexPrev_{newPageIndex}", emote: new Emoji("⬅️"));
-        }
-        if (newPageIndex < (totalPages - 1) && totalPages > 1)
-        {
-            buttonBuilder.WithButton("Next", $"currentIndexNext_{newPageIndex}", emote: new Emoji("➡️"));
-        }
+        var (embed, components) = BuildThreadListMessage(threadEmbed, newPageIndex, totalPages);
 
         var message = threadListMessage.ListMessageId != null
             ? await textChannel.GetMessageAsync(Convert.ToUInt64(threadListMessage.ListMessageId))
@@ -134,8 +174,8 @@ public class ThreadListUpdateHelper(IThreadBotBusinessLayer threadBotBusinessLay
         {
             return await textChannel.ModifyMessageAsync(Convert.ToUInt64(listMessageId), properties =>
             {
-                properties.Embed = threadEmbed.Build();
-                properties.Components = buttonBuilder.Build();
+                properties.Embed = embed.Build();
+                properties.Components = components.Build();
             });
         }
 
@@ -153,9 +193,8 @@ public class ThreadListUpdateHelper(IThreadBotBusinessLayer threadBotBusinessLay
 
         return await textChannel.ModifyMessageAsync(Convert.ToUInt64(listMessageId), properties =>
         {
-            properties.Embed = threadEmbed.Build();
-            properties.Components = buttonBuilder.Build();
+            properties.Embed = embed.Build();
+            properties.Components = components.Build();
         });
-
     }
 }
