@@ -54,7 +54,7 @@ jobs:
           docker push $CURRENT_ID:$VERSION
           docker push $CURRENT_ID:latest
       - name: Deploy to Server via SSH action
-        uses: appleboy/ssh-action@v0.1.3
+        uses: appleboy/ssh-action@v1.2.5
         with:
           HOST: ${{ secrets.DOCKERDEPLOY_HOST }}
           USERNAME: ${{ secrets.DOCKERDEPLOY_HOST_USER }}
