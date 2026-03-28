@@ -72,6 +72,46 @@ public class ThreadListUpdateHelper(IThreadBotBusinessLayer threadBotBusinessLay
         return (threadsByChannel, totalPages);
     }
 
+    private const int MaxEmbedFieldValueLength = 1024;
+
+    private static List<EmbedFieldBuilder> BuildFieldsForChannelGroup(string channelName, List<ThreadChannelPartial> threads)
+    {
+        var orderedMentions = threads.OrderBy(t => t.ThreadName).Select(t => t.ThreadMention).ToList();
+        var fields = new List<EmbedFieldBuilder>();
+        var currentLines = new List<string>();
+        var currentLength = 0;
+
+        foreach (var mention in orderedMentions)
+        {
+            var addedLength = (currentLines.Count > 0 ? 1 : 0) + mention.Length; // +1 for \n separator
+            if (currentLength + addedLength > MaxEmbedFieldValueLength && currentLines.Count > 0)
+            {
+                fields.Add(new EmbedFieldBuilder
+                {
+                    Name = fields.Count == 0 ? $"#{channelName}" : $"#{channelName} (cont.)",
+                    Value = string.Join("\n", currentLines),
+                    IsInline = false
+                });
+                currentLines.Clear();
+                currentLength = 0;
+            }
+            currentLines.Add(mention);
+            currentLength += addedLength;
+        }
+
+        if (currentLines.Count > 0)
+        {
+            fields.Add(new EmbedFieldBuilder
+            {
+                Name = fields.Count == 0 ? $"#{channelName}" : $"#{channelName} (cont.)",
+                Value = string.Join("\n", currentLines),
+                IsInline = false
+            });
+        }
+
+        return fields;
+    }
+
     private static EmbedBuilder BuildThreadEmbed(Dictionary<string, List<ThreadChannelPartial>> threadsByChannel, int pageIndex)
     {
         var paginatedChannelGroups = threadsByChannel
@@ -83,16 +123,7 @@ public class ThreadListUpdateHelper(IThreadBotBusinessLayer threadBotBusinessLay
         var embedFields = new List<EmbedFieldBuilder>();
         foreach (var channelGroup in paginatedChannelGroups)
         {
-            var threadMentions = channelGroup.Value
-                .OrderBy(t => t.ThreadName)
-                .Select(t => t.ThreadMention);
-
-            embedFields.Add(new EmbedFieldBuilder
-            {
-                Name = $"#{channelGroup.Key}",
-                Value = string.Join("\n", threadMentions),
-                IsInline = false
-            });
+            embedFields.AddRange(BuildFieldsForChannelGroup(channelGroup.Key, channelGroup.Value));
         }
 
         var embed = new EmbedBuilder
