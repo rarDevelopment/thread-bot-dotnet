@@ -16,6 +16,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@v3
+      - name: Run Unit Tests
+        run: dotnet test ThreadBot.sln --configuration Release --no-build --verbosity normal
       - name: Calculate Publishing Variables
         run: |
           # docker.pkg.github.com/
