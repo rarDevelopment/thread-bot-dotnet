@@ -12,19 +12,20 @@ public class ThreadListUpdateHelper(IThreadBotBusinessLayer threadBotBusinessLay
     private const string ActiveThreadsTitle = "Active Threads";
     private const string NoActiveThreadsTitle = "No Active Threads";
     private const string FooterText = "Regards, Theodore";
-    private const int MaxChannelGroupsPerPage = 25;
+    private const int MaxFieldsPerPage = 25;
+    private const int MaxEmbedContentLength = 5800; // Discord's 6000 char limit minus buffer for title/footer
 
     public async Task<IUserMessage?> UpdateThreadListAndGetMessage(SocketGuild guild, int newPageIndex = 0)
     {
         try
         {
-            var threadsByChannelAndTotalPages = GetThreadsByChannelPaginated(guild.ThreadChannels);
+            var paginatedFields = GetPaginatedEmbedFields(guild.ThreadChannels);
 
             // Build the embed for the current page
-            var threadEmbed = BuildThreadEmbed(threadsByChannelAndTotalPages.threadsByChannel, newPageIndex);
+            var threadEmbed = BuildThreadEmbed(paginatedFields.pages.ElementAtOrDefault(newPageIndex) ?? [], newPageIndex);
 
             // Update the thread list message
-            var message = await UpdateThreadList(guild, threadEmbed, newPageIndex, threadsByChannelAndTotalPages.totalPages);
+            var message = await UpdateThreadList(guild, threadEmbed, newPageIndex, paginatedFields.totalPages);
             return message;
         }
         catch (Exception ex)
@@ -40,11 +41,11 @@ public class ThreadListUpdateHelper(IThreadBotBusinessLayer threadBotBusinessLay
         {
             var threadsInSpecifiedChannel = guild.ThreadChannels.Where(t => t.ParentChannel.Id == channel.Id).ToList();
 
-            var threadsByChannelAndTotalPages = GetThreadsByChannelPaginated(threadsInSpecifiedChannel);
+            var paginatedFields = GetPaginatedEmbedFields(threadsInSpecifiedChannel);
 
             // Build the embed for the current page
-            var threadEmbedBuilder = BuildThreadEmbed(threadsByChannelAndTotalPages.threadsByChannel, newPageIndex);
-            var threadListMessage = BuildThreadListMessage(threadEmbedBuilder, newPageIndex, threadsByChannelAndTotalPages.totalPages);
+            var threadEmbedBuilder = BuildThreadEmbed(paginatedFields.pages.ElementAtOrDefault(newPageIndex) ?? [], newPageIndex);
+            var threadListMessage = BuildThreadListMessage(threadEmbedBuilder, newPageIndex, paginatedFields.totalPages);
             return threadListMessage;
         }
         catch (Exception ex)
@@ -54,10 +55,10 @@ public class ThreadListUpdateHelper(IThreadBotBusinessLayer threadBotBusinessLay
         }
     }
 
-    public (Dictionary<string, List<ThreadChannelPartial>> threadsByChannel, int totalPages)
-        GetThreadsByChannelPaginated(IReadOnlyCollection<SocketThreadChannel> threadChannels)
+    public (List<List<EmbedFieldBuilder>> pages, int totalPages)
+        GetPaginatedEmbedFields(IReadOnlyCollection<SocketThreadChannel> threadChannels)
     {
-        var threads = (IReadOnlyList<ThreadChannelPartial>)threadChannels.Where(t => t is { IsArchived: false, IsLocked: false })
+        var threads = threadChannels.Where(t => t is { IsArchived: false, IsLocked: false })
             .Select(t => new ThreadChannelPartial(t.Name,
                 t.Mention,
                 t.ParentChannel.Name,
@@ -65,11 +66,48 @@ public class ThreadListUpdateHelper(IThreadBotBusinessLayer threadBotBusinessLay
 
         var threadsByChannel = threads
             .GroupBy(t => t.ChannelName)
+            .OrderBy(g => g.Key)
             .ToDictionary(g => g.Key, g => g.ToList());
 
-        var totalPages = Math.Max(1, (int)Math.Ceiling((double)threadsByChannel.Count / MaxChannelGroupsPerPage));
+        // Build all fields with 1024-char splitting per field
+        var allFields = new List<EmbedFieldBuilder>();
+        foreach (var channelGroup in threadsByChannel)
+        {
+            allFields.AddRange(BuildFieldsForChannelGroup(channelGroup.Key, channelGroup.Value));
+        }
 
-        return (threadsByChannel, totalPages);
+        // Paginate fields respecting both 25-field limit and total embed char limit
+        var pages = new List<List<EmbedFieldBuilder>>();
+        var currentPage = new List<EmbedFieldBuilder>();
+        var currentPageCharCount = 0;
+
+        foreach (var field in allFields)
+        {
+            var fieldCharCount = field.Name.Length + ((string)field.Value).Length;
+
+            if (currentPage.Count > 0 &&
+                (currentPage.Count >= MaxFieldsPerPage || currentPageCharCount + fieldCharCount > MaxEmbedContentLength))
+            {
+                pages.Add(currentPage);
+                currentPage = new List<EmbedFieldBuilder>();
+                currentPageCharCount = 0;
+            }
+
+            currentPage.Add(field);
+            currentPageCharCount += fieldCharCount;
+        }
+
+        if (currentPage.Count > 0)
+        {
+            pages.Add(currentPage);
+        }
+
+        if (pages.Count == 0)
+        {
+            pages.Add([]);
+        }
+
+        return (pages, pages.Count);
     }
 
     private const int MaxEmbedFieldValueLength = 1024;
@@ -112,24 +150,12 @@ public class ThreadListUpdateHelper(IThreadBotBusinessLayer threadBotBusinessLay
         return fields;
     }
 
-    private static EmbedBuilder BuildThreadEmbed(Dictionary<string, List<ThreadChannelPartial>> threadsByChannel, int pageIndex)
+    private static EmbedBuilder BuildThreadEmbed(List<EmbedFieldBuilder> pageFields, int pageIndex)
     {
-        var paginatedChannelGroups = threadsByChannel
-            .OrderBy(c => c.Key)
-            .Skip(pageIndex * MaxChannelGroupsPerPage)
-            .Take(MaxChannelGroupsPerPage)
-            .ToList();
-
-        var embedFields = new List<EmbedFieldBuilder>();
-        foreach (var channelGroup in paginatedChannelGroups)
-        {
-            embedFields.AddRange(BuildFieldsForChannelGroup(channelGroup.Key, channelGroup.Value));
-        }
-
         var embed = new EmbedBuilder
         {
-            Title = embedFields.Count > 0 ? ActiveThreadsTitle : NoActiveThreadsTitle,
-            Fields = embedFields.Count > 0 ? embedFields :
+            Title = pageFields.Count > 0 ? ActiveThreadsTitle : NoActiveThreadsTitle,
+            Fields = pageFields.Count > 0 ? pageFields :
             [
                 new EmbedFieldBuilder
                 {

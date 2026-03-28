@@ -101,8 +101,8 @@ public class SetThreadChannelSlashCommand(
         await DeferAsync();
 
         var newIndex = currentIndex + 1;
-        var threadsByChannelAndPageCount = threadListUpdateHelper.GetThreadsByChannelPaginated(Context.Guild.ThreadChannels);
-        if (newIndex < threadsByChannelAndPageCount.totalPages)
+        var paginatedFields = threadListUpdateHelper.GetPaginatedEmbedFields(Context.Guild.ThreadChannels);
+        if (newIndex < paginatedFields.totalPages)
         {
             await threadListUpdateHelper.UpdateThreadListAndGetMessage(Context.Guild, newIndex);
         }
