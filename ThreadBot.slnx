@@ -1,0 +1,12 @@
+<Solution>
+  <Configurations>
+    <Platform Name="Any CPU" />
+    <Platform Name="x64" />
+    <Platform Name="x86" />
+  </Configurations>
+  <Project Path="ThreadBot.BusinessLayer/ThreadBot.BusinessLayer.csproj" />
+  <Project Path="ThreadBot.DataLayer/ThreadBot.DataLayer.csproj" />
+  <Project Path="ThreadBot.Models/ThreadBot.Models.csproj" />
+  <Project Path="ThreadBot.Tests/ThreadBot.Tests.csproj" />
+  <Project Path="ThreadBot/ThreadBot.csproj" />
+</Solution>
